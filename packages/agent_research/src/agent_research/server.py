@@ -8,11 +8,13 @@ import uvicorn
 from shared.a2a_app_factory import build_a2a_fastapi
 from shared.a2a_executor import CallbackAgentExecutor
 from shared.agent_card import build_agent_card
+from shared.env_load import load_local_env
 
 from agent_research.deep_agent import run_research
 
 
 def create_app():
+    load_local_env()
     public_url = os.environ.get(
         "RESEARCH_PUBLIC_URL",
         f"http://127.0.0.1:{os.environ.get('RESEARCH_PORT', '8001')}",

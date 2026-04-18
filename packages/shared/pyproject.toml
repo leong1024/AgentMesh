@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Shared types, prompts, and A2A helpers for AgentMesh"
 requires-python = ">=3.11"
 dependencies = [
+    "python-dotenv>=1.0",
     "pydantic>=2.11",
     "a2a-sdk[http-server]==0.3.26",
     "langchain>=0.3",

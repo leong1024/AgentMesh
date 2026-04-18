@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 import typer
+from shared.env_load import load_local_env
 
 from orchestrator.a2a_client import HttpA2AClient
 from orchestrator.settings import Settings
@@ -28,6 +29,7 @@ def analyze(
     json_out: bool = typer.Option(False, "--json", help="Print JSON instead of report"),
 ) -> None:
     """Run the star workflow and print the final report (or full JSON)."""
+    load_local_env()
     text = idea
     if idea_file is not None:
         text = idea_file.read_text(encoding="utf-8")

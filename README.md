@@ -31,7 +31,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    copy .env.example .env
    ```
 
-   Edit `.env`: set **`GROQ_API_KEY`**, and adjust `*_MODEL` if you want a different Groq model (each must start with `groq:`).
+   Edit `.env`: set **`GROQ_API_KEY`**, and adjust `*_MODEL` if you want a different Groq model (each must start with `groq:`). Agent and orchestrator processes load that file on startup (`python-dotenv`), so you do not need to export variables manually for local runs.
 
 3. In **four** terminals from the repo root:
 

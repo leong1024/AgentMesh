@@ -1484,6 +1484,7 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-groq" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
@@ -1492,6 +1493,7 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3" },
     { name = "langchain-groq", specifier = ">=0.3" },
     { name = "pydantic", specifier = ">=2.11" },
+    { name = "python-dotenv", specifier = ">=1.0" },
 ]
 
 [[package]]
