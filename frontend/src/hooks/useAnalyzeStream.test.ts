@@ -17,6 +17,20 @@ function streamFromChunks(chunks: string[]): ReadableStream<Uint8Array> {
 }
 
 describe("readSseJsonLines", () => {
+  it("parses multiple SSE frames with CRLF delimiters (sse-starlette)", async () => {
+    const body = streamFromChunks([
+      'data: {"step":"research","status":"started"}\r\n\r\n',
+      'data: {"step":"research","status":"completed"}\r\n\r\n',
+    ]);
+    const out: Record<string, unknown>[] = [];
+    for await (const ev of readSseJsonLines(body)) {
+      out.push(ev);
+    }
+    expect(out).toHaveLength(2);
+    expect(out[0]).toMatchObject({ step: "research", status: "started" });
+    expect(out[1]).toMatchObject({ step: "research", status: "completed" });
+  });
+
   it("parses multiple well-formed SSE frames", async () => {
     const body = streamFromChunks([
       'data: {"step":"research","status":"started"}\n\n',
@@ -67,6 +81,19 @@ describe("readSseJsonLines", () => {
       status: "done",
       report: "",
     });
+  });
+
+  it("handles CRLF event boundary split across chunk boundaries", async () => {
+    const payload = JSON.stringify({ step: "research", status: "started" });
+    const frame = `data: ${payload}\r\n\r\n`;
+    const mid = frame.indexOf("\r\n\r") + 2;
+    const body = streamFromChunks([frame.slice(0, mid), frame.slice(mid)]);
+    const out: Record<string, unknown>[] = [];
+    for await (const ev of readSseJsonLines(body)) {
+      out.push(ev);
+    }
+    expect(out).toHaveLength(1);
+    expect(out[0]).toEqual({ step: "research", status: "started" });
   });
 
   it("handles event split across chunk boundaries before \\n\\n", async () => {

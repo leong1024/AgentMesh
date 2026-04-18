@@ -7,11 +7,14 @@ export type StreamStep = {
   report?: string | null;
 };
 
+/** Matches a blank line between SSE events (sse-starlette uses `\r\n`; LF also valid). */
+const SSE_EVENT_BOUNDARY = /\r\n\r\n|\n\n/;
+
 function parseSseDataBlock(block: string): Record<string, unknown> | null {
   const trimmed = block.trim();
   if (!trimmed) return null;
   const line = trimmed
-    .split("\n")
+    .split(/\r\n|\n|\r/)
     .find((l) => l.startsWith("data: "));
   if (!line) return null;
   const json = line.slice("data: ".length).trim();
@@ -41,7 +44,7 @@ export async function* readSseJsonLines(
     const { done, value } = await reader.read();
     if (!done) {
       buffer += decoder.decode(value as Uint8Array, { stream: true });
-      const parts = buffer.split("\n\n");
+      const parts = buffer.split(SSE_EVENT_BOUNDARY);
       buffer = parts.pop() ?? "";
       for (const block of parts) {
         const ev = parseSseDataBlock(block);
@@ -51,7 +54,7 @@ export async function* readSseJsonLines(
     }
 
     buffer += decoder.decode(new Uint8Array(), { stream: false });
-    for (const block of buffer.split("\n\n")) {
+    for (const block of buffer.split(SSE_EVENT_BOUNDARY)) {
       const ev = parseSseDataBlock(block);
       if (ev) yield ev;
     }
