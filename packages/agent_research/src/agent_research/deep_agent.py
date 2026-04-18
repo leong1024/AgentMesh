@@ -7,14 +7,14 @@ import os
 from deepagents import create_deep_agent
 from langchain_core.messages import HumanMessage
 from shared.graph_output import last_ai_text
-from shared.model_factory import resolve_deepagent_model
+from shared.model_factory import DEFAULT_GROQ_MODEL_SPEC, groq_chat_model
 from shared.payloads import ResearchIn
 from shared.prompts import RESEARCH_SYSTEM
 
 
 def _model():
-    spec = os.environ.get("RESEARCH_MODEL", "ollama:llama3.2")
-    return resolve_deepagent_model(spec)
+    spec = os.environ.get("RESEARCH_MODEL", DEFAULT_GROQ_MODEL_SPEC)
+    return groq_chat_model(spec)
 
 
 def build_research_graph():

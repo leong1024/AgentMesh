@@ -1,4 +1,4 @@
-"""Optional LLM smoke — skipped unless RUN_LLM_TESTS=1."""
+"""Optional LLM smoke — skipped unless RUN_LLM_TESTS=1 (uses Groq; needs GROQ_API_KEY)."""
 
 from __future__ import annotations
 

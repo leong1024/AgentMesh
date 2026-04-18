@@ -9,7 +9,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 20+ (for the frontend)
-- A local LLM via **Ollama** (default in `.env.example`), or **Groq** / other providers via LangChain model strings (see below).
+- A **[Groq](https://console.groq.com/)** API key (`GROQ_API_KEY`). All three agents call Groq over HTTPS via LangChain (`langchain-groq`); model ids use the unified `groq:...` form (see `.env.example`).
 
 ## Quick start (local, no Docker)
 
@@ -31,24 +31,9 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    copy .env.example .env
    ```
 
-   Edit `.env` if ports or models differ.
+   Edit `.env`: set **`GROQ_API_KEY`**, and adjust `*_MODEL` if you want a different Groq model (each must start with `groq:`).
 
-3. Configure models and keys in `.env`:
-
-   - **Ollama (default):** start Ollama locally; keep `*_MODEL=ollama:...`.
-   - **Groq:** set `GROQ_API_KEY` and use unified model strings, for example:
-
-     ```text
-     RESEARCH_MODEL=groq:llama-3.1-70b-versatile
-     CRITIC_MODEL=groq:llama-3.1-70b-versatile
-     SYNTHESIZER_MODEL=groq:llama-3.1-70b-versatile
-     ```
-
-     The repo resolves `groq:` prefixes with `langchain.chat_models.init_chat_model` and passes a chat model into `create_deep_agent`, matching the pattern from the [LangChain](https://python.langchain.com/) / Groq docs.
-
-4. Start **Ollama** if you use `ollama:...` models (skip if you only use Groq).
-
-4. In **four** terminals from the repo root:
+3. In **four** terminals from the repo root:
 
    ```bash
    uv run python -m uvicorn agent_research.server:create_app --factory --host 0.0.0.0 --port 8001
@@ -66,7 +51,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    uv run uvicorn orchestrator.main:create_app --factory --host 0.0.0.0 --port 8080
    ```
 
-5. Start the UI (dev server proxies `/api` to the orchestrator):
+4. Start the UI (dev server proxies `/api` to the orchestrator):
 
    ```bash
    cd frontend && npm run dev
@@ -95,7 +80,7 @@ docker compose up --build
 - API + bundled SPA: http://localhost:8080  
 - Agents: ports `8001`–`8003` (mapped for debugging).
 
-Containers expect the LLM to be reachable from **inside** the container. For Ollama on the host, you typically need extra networking (e.g. `extra_hosts` / `host.docker.internal`) or run Ollama in the same compose stack—adjust for your OS and security requirements.
+Compose reads a project `.env` for variable substitution. Set **`GROQ_API_KEY`** there (or in your shell) so agent containers can reach the Groq API.
 
 ## CLI (headless)
 
@@ -119,7 +104,7 @@ Python (workspace root):
 uv run pytest packages/shared/tests orchestrator/tests packages/agent_research/tests -q
 ```
 
-Optional LLM smoke (needs a running model and `RUN_LLM_TESTS=1`):
+Optional LLM smoke (needs `GROQ_API_KEY`, valid `*_MODEL`, and `RUN_LLM_TESTS=1`):
 
 ```bash
 set RUN_LLM_TESTS=1

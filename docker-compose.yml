@@ -15,7 +15,8 @@ services:
       RESEARCH_HOST: 0.0.0.0
       RESEARCH_PORT: "8001"
       RESEARCH_PUBLIC_URL: http://research:8001
-      RESEARCH_MODEL: ${RESEARCH_MODEL:-ollama:llama3.2}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      RESEARCH_MODEL: ${RESEARCH_MODEL:-groq:llama-3.3-70b-versatile}
     ports:
       - "8001:8001"
     healthcheck:
@@ -40,7 +41,8 @@ services:
       CRITIC_HOST: 0.0.0.0
       CRITIC_PORT: "8002"
       CRITIC_PUBLIC_URL: http://critic:8002
-      CRITIC_MODEL: ${CRITIC_MODEL:-ollama:llama3.2}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      CRITIC_MODEL: ${CRITIC_MODEL:-groq:llama-3.3-70b-versatile}
     ports:
       - "8002:8002"
     healthcheck:
@@ -65,7 +67,8 @@ services:
       SYNTHESIZER_HOST: 0.0.0.0
       SYNTHESIZER_PORT: "8003"
       SYNTHESIZER_PUBLIC_URL: http://synthesizer:8003
-      SYNTHESIZER_MODEL: ${SYNTHESIZER_MODEL:-ollama:llama3.2}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      SYNTHESIZER_MODEL: ${SYNTHESIZER_MODEL:-groq:llama-3.3-70b-versatile}
     ports:
       - "8003:8003"
     healthcheck:

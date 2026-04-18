@@ -6,7 +6,6 @@ dependencies = [
     "shared",
     "deepagents>=0.5",
     "langchain-core>=0.3",
-    "langchain-ollama>=0.3",
     "uvicorn[standard]>=0.32",
     "a2a-sdk[http-server]==0.3.26",
 ]
