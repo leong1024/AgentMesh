@@ -1,0 +1,103 @@
+services:
+  research:
+    build: .
+    command:
+      [
+        "uvicorn",
+        "agent_research.server:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+      ]
+    environment:
+      RESEARCH_HOST: 0.0.0.0
+      RESEARCH_PORT: "8001"
+      RESEARCH_PUBLIC_URL: http://research:8001
+      RESEARCH_MODEL: ${RESEARCH_MODEL:-ollama:llama3.2}
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  critic:
+    build: .
+    command:
+      [
+        "uvicorn",
+        "agent_critic.server:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8002",
+      ]
+    environment:
+      CRITIC_HOST: 0.0.0.0
+      CRITIC_PORT: "8002"
+      CRITIC_PUBLIC_URL: http://critic:8002
+      CRITIC_MODEL: ${CRITIC_MODEL:-ollama:llama3.2}
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  synthesizer:
+    build: .
+    command:
+      [
+        "uvicorn",
+        "agent_synthesizer.server:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8003",
+      ]
+    environment:
+      SYNTHESIZER_HOST: 0.0.0.0
+      SYNTHESIZER_PORT: "8003"
+      SYNTHESIZER_PUBLIC_URL: http://synthesizer:8003
+      SYNTHESIZER_MODEL: ${SYNTHESIZER_MODEL:-ollama:llama3.2}
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    command:
+      [
+        "uvicorn",
+        "orchestrator.main:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+      ]
+    environment:
+      RESEARCH_A2A_URL: http://research:8001
+      CRITIC_A2A_URL: http://critic:8002
+      SYNTHESIZER_A2A_URL: http://synthesizer:8003
+      STATIC_DIR: /app/frontend/dist
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      research:
+        condition: service_healthy
+      critic:
+        condition: service_healthy
+      synthesizer:
+        condition: service_healthy

@@ -1,0 +1,92 @@
+.app {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  color: #e8e8ec;
+  background: #0f1117;
+  min-height: 100vh;
+}
+
+.header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+.tagline {
+  margin: 0 0 1.5rem;
+  color: #9aa3b2;
+  font-size: 0.95rem;
+}
+
+.idea-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.idea-form label {
+  font-weight: 600;
+}
+
+.idea-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #2a3140;
+  background: #161b26;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.idea-form button {
+  align-self: flex-start;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.idea-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.steps {
+  margin: 0 0 1.5rem;
+  padding-left: 1.25rem;
+  color: #c6cad3;
+}
+
+.error {
+  color: #f87171;
+  margin: 0 0 1rem;
+}
+
+.report-section {
+  margin-top: 1rem;
+}
+
+.report-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+}
+
+.report-view {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #2a3140;
+  background: #161b26;
+}
+
+.report-view h1,
+.report-view h2,
+.report-view h3 {
+  margin-top: 1.25rem;
+}
