@@ -47,7 +47,6 @@ async def health_agents(
     return HealthAgentsResponse(
         research=await probe(settings.research_a2a_url),
         critic=await probe(settings.critic_a2a_url),
-        synthesizer=await probe(settings.synthesizer_a2a_url),
     )
 
 

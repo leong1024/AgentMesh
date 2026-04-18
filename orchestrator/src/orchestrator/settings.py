@@ -16,7 +16,11 @@ class Settings(BaseSettings):
 
     research_a2a_url: str = Field(default="http://127.0.0.1:8001")
     critic_a2a_url: str = Field(default="http://127.0.0.1:8002")
-    synthesizer_a2a_url: str = Field(default="http://127.0.0.1:8003")
+
+    orchestrator_model: str = Field(
+        default="google_genai:gemma-4-31b-it",
+        description="Model id for the orchestrator deep agent that writes the final report.",
+    )
 
     cors_origins: str = Field(
         default="http://localhost:5173,http://127.0.0.1:5173",

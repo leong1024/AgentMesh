@@ -83,7 +83,6 @@ class SynthesizerOut(BaseModel):
 class StepOutputs(BaseModel):
     research: ResearchOut
     critic: CriticOut
-    synthesizer: SynthesizerOut
 
 
 class AnalyzeResponse(BaseModel):
@@ -103,9 +102,8 @@ class StreamEvent(BaseModel):
 class HealthAgentsResponse(BaseModel):
     research: bool
     critic: bool
-    synthesizer: bool
 
-    @field_validator("research", "critic", "synthesizer", mode="before")
+    @field_validator("research", "critic", mode="before")
     @classmethod
     def _coerce_bool(cls, v: Any) -> bool:
         return bool(v)

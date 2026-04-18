@@ -935,8 +935,10 @@ version = "0.1.0"
 source = { editable = "orchestrator" }
 dependencies = [
     { name = "a2a-sdk" },
+    { name = "deepagents" },
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "langchain-core" },
     { name = "pydantic-settings" },
     { name = "shared" },
     { name = "sse-starlette" },
@@ -947,8 +949,10 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "a2a-sdk", specifier = "==0.3.26" },
+    { name = "deepagents", specifier = ">=0.5" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.28" },
+    { name = "langchain-core", specifier = ">=0.3" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "shared", editable = "packages/shared" },
     { name = "sse-starlette", specifier = ">=2.0" },

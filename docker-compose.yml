@@ -53,33 +53,6 @@ services:
       timeout: 5s
       retries: 5
 
-  synthesizer:
-    build: .
-    command:
-      [
-        "uvicorn",
-        "agent_synthesizer.server:create_app",
-        "--factory",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8003",
-      ]
-    environment:
-      SYNTHESIZER_HOST: 0.0.0.0
-      SYNTHESIZER_PORT: "8003"
-      SYNTHESIZER_PUBLIC_URL: http://synthesizer:8003
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
-      SYNTHESIZER_MODEL: ${SYNTHESIZER_MODEL:-google_genai:gemma-4-31b-it}
-    ports:
-      - "8003:8003"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/.well-known/agent-card.json"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build: .
     command:
@@ -95,7 +68,9 @@ services:
     environment:
       RESEARCH_A2A_URL: http://research:8001
       CRITIC_A2A_URL: http://critic:8002
-      SYNTHESIZER_A2A_URL: http://synthesizer:8003
+      ORCHESTRATOR_MODEL: ${ORCHESTRATOR_MODEL:-google_genai:gemma-4-31b-it}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       STATIC_DIR: /app/frontend/dist
       CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080
     ports:
@@ -104,6 +79,4 @@ services:
       research:
         condition: service_healthy
       critic:
-        condition: service_healthy
-      synthesizer:
         condition: service_healthy

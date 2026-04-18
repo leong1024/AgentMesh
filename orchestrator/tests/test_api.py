@@ -21,13 +21,19 @@ class SeqFakeClient:
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch: pytest.MonkeyPatch):
+    async def fake_synth(idea, research, critic, settings) -> str:
+        return "# OK"
+
+    monkeypatch.setattr(
+        "orchestrator.deep_workflow.synthesize_final_report",
+        fake_synth,
+    )
     app = create_app()
     fake = SeqFakeClient(
         [
             '{"assumptions":[],"market_context":"","open_questions":[]}',
             '{"risks":[],"flaws":[],"investor_concerns":[]}',
-            '{"executive_summary":"","sections":{},"report":"# OK"}',
         ]
     )
     app.dependency_overrides[get_a2a_client] = lambda: fake

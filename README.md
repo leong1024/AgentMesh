@@ -1,6 +1,6 @@
 # AgentMesh
 
-AI Product Analyst crew: three **[Deep Agents](https://docs.langchain.com/oss/python/deepagents/overview)** (Research, Critic, Synthesizer) exposed as **[A2A](https://github.com/google-a2a/A2A)** JSON-RPC services, orchestrated in a **star topology** by a **FastAPI** app with a **Vite + React** UI.
+AI Product Analyst crew: two **[Deep Agents](https://docs.langchain.com/oss/python/deepagents/overview)** over **[A2A](https://github.com/google-a2a/A2A)** (Research, Critic), plus an **in-process orchestrator Deep Agent** in **FastAPI** that merges their outputs into the final report, with a **Vite + React** UI.
 
 See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
 
@@ -9,7 +9,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 20+ (for the frontend)
-- A **[Google AI Studio](https://aistudio.google.com/apikey)** (or Google Cloud) API key: set **`GEMINI_API_KEY`** or **`GOOGLE_API_KEY`** (LangChain’s Google integration reads `GOOGLE_API_KEY`; if only `GEMINI_API_KEY` is set, agents copy it at startup). All three agents use LangChain **`langchain-google-genai`**; model ids use the unified `google_genai:...` form (see `.env.example`).
+- A **[Google AI Studio](https://aistudio.google.com/apikey)** (or Google Cloud) API key: set **`GEMINI_API_KEY`** or **`GOOGLE_API_KEY`** (LangChain’s Google integration reads `GOOGLE_API_KEY`; if only `GEMINI_API_KEY` is set, it is copied at startup). Workers and the orchestrator use LangChain **`langchain-google-genai`**; model ids use the unified `google_genai:...` form (see `.env.example`).
 
 ## Quick start (local, no Docker)
 
@@ -31,9 +31,9 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    copy .env.example .env
    ```
 
-   Edit `.env`: set **`GEMINI_API_KEY`** (or **`GOOGLE_API_KEY`**), and adjust `*_MODEL` if you want a different Gemini / Gemma id (each must start with `google_genai:`). Agent and orchestrator processes load that file on startup (`python-dotenv`), so you do not need to export variables manually for local runs.
+   Edit `.env`: set **`GEMINI_API_KEY`** (or **`GOOGLE_API_KEY`**), and adjust `*_MODEL` if you want a different Gemini / Gemma id (each must start with `google_genai:`). Set **`ORCHESTRATOR_MODEL`** for the in-process final-report agent. Processes load that file on startup (`python-dotenv`), so you do not need to export variables manually for local runs.
 
-3. In **four** terminals from the repo root:
+3. In **three** terminals from the repo root:
 
    ```bash
    uv run python -m uvicorn agent_research.server:create_app --factory --host 0.0.0.0 --port 8001
@@ -41,10 +41,6 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
 
    ```bash
    uv run python -m uvicorn agent_critic.server:create_app --factory --host 0.0.0.0 --port 8002
-   ```
-
-   ```bash
-   uv run python -m uvicorn agent_synthesizer.server:create_app --factory --host 0.0.0.0 --port 8003
    ```
 
    ```bash
@@ -79,14 +75,14 @@ Then open http://127.0.0.1:8080
 
 ## Docker Compose
 
-Builds the frontend into the image and runs three agents plus the API.
+Builds the frontend into the image and runs two A2A agents (Research, Critic) plus the API.
 
 ```bash
 docker compose up --build
 ```
 
 - API + bundled SPA: http://localhost:8080  
-- Agents: ports `8001`–`8003` (mapped for debugging).
+- A2A workers: ports `8001`–`8002` (mapped for debugging).
 
 Compose reads a project `.env` for variable substitution. Set **`GEMINI_API_KEY`** (and optionally **`GOOGLE_API_KEY`**) so agent containers can call the Google Gen AI API.
 
@@ -141,5 +137,5 @@ uv run ruff format packages orchestrator
 
 - `packages/shared` — Pydantic payloads, prompts, A2A helpers.
 - `packages/agent_*` — Deep Agent + A2A server per role.
-- `orchestrator` — FastAPI, A2A client, star workflow, SSE stream.
+- `orchestrator` — FastAPI, A2A client, deep-agent synthesis, SSE stream.
 - `frontend` — Vite React UI.
