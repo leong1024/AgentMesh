@@ -7,14 +7,14 @@ import os
 from deepagents import create_deep_agent
 from langchain_core.messages import HumanMessage
 from shared.graph_output import last_ai_text
-from shared.model_factory import DEFAULT_GROQ_MODEL_SPEC, groq_chat_model
+from shared.model_factory import DEFAULT_GEMINI_MODEL_SPEC, gemini_chat_model
 from shared.payloads import CriticIn
 from shared.prompts import CRITIC_SYSTEM
 
 
 def _model():
-    spec = os.environ.get("CRITIC_MODEL", DEFAULT_GROQ_MODEL_SPEC)
-    return groq_chat_model(spec)
+    spec = os.environ.get("CRITIC_MODEL", DEFAULT_GEMINI_MODEL_SPEC)
+    return gemini_chat_model(spec)
 
 
 def build_critic_graph():

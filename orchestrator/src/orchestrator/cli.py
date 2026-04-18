@@ -38,14 +38,12 @@ def analyze(
 
     async def _run() -> None:
         settings = Settings()
-        timeout = httpx.Timeout(settings.http_timeout_seconds)
-        async with httpx.AsyncClient(timeout=timeout) as http_client:
-            client = HttpA2AClient(http_client)
-            result = await run_star_workflow(text.strip(), client, settings)
-            if json_out:
-                print(json.dumps(result.model_dump(), indent=2))
-            else:
-                print(result.report)
+        client = HttpA2AClient(httpx.Timeout(settings.http_timeout_seconds))
+        result = await run_star_workflow(text.strip(), client, settings)
+        if json_out:
+            print(json.dumps(result.model_dump(), indent=2))
+        else:
+            print(result.report)
 
     asyncio.run(_run())
 

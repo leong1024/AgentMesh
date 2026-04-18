@@ -1,4 +1,7 @@
-"""Optional LLM smoke — skipped unless RUN_LLM_TESTS=1 (uses Groq; needs GROQ_API_KEY)."""
+"""Optional LLM smoke — skipped unless RUN_LLM_TESTS=1.
+
+Uses Google Gen AI; needs GEMINI_API_KEY or GOOGLE_API_KEY.
+"""
 
 from __future__ import annotations
 

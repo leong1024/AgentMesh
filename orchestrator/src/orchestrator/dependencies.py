@@ -27,6 +27,6 @@ async def get_http_client(
 
 
 def get_a2a_client(
-    http_client: Annotated[httpx.AsyncClient, Depends(get_http_client)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> HttpA2AClient:
-    return HttpA2AClient(http_client)
+    return HttpA2AClient(httpx.Timeout(settings.http_timeout_seconds))

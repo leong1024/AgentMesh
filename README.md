@@ -9,7 +9,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 20+ (for the frontend)
-- A **[Groq](https://console.groq.com/)** API key (`GROQ_API_KEY`). All three agents call Groq over HTTPS via LangChain (`langchain-groq`); model ids use the unified `groq:...` form (see `.env.example`).
+- A **[Google AI Studio](https://aistudio.google.com/apikey)** (or Google Cloud) API key: set **`GEMINI_API_KEY`** or **`GOOGLE_API_KEY`** (LangChain’s Google integration reads `GOOGLE_API_KEY`; if only `GEMINI_API_KEY` is set, agents copy it at startup). All three agents use LangChain **`langchain-google-genai`**; model ids use the unified `google_genai:...` form (see `.env.example`).
 
 ## Quick start (local, no Docker)
 
@@ -31,7 +31,7 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    copy .env.example .env
    ```
 
-   Edit `.env`: set **`GROQ_API_KEY`**, and adjust `*_MODEL` if you want a different Groq model (each must start with `groq:`). Agent and orchestrator processes load that file on startup (`python-dotenv`), so you do not need to export variables manually for local runs.
+   Edit `.env`: set **`GEMINI_API_KEY`** (or **`GOOGLE_API_KEY`**), and adjust `*_MODEL` if you want a different Gemini / Gemma id (each must start with `google_genai:`). Agent and orchestrator processes load that file on startup (`python-dotenv`), so you do not need to export variables manually for local runs.
 
 3. In **four** terminals from the repo root:
 
@@ -80,7 +80,7 @@ docker compose up --build
 - API + bundled SPA: http://localhost:8080  
 - Agents: ports `8001`–`8003` (mapped for debugging).
 
-Compose reads a project `.env` for variable substitution. Set **`GROQ_API_KEY`** there (or in your shell) so agent containers can reach the Groq API.
+Compose reads a project `.env` for variable substitution. Set **`GEMINI_API_KEY`** (and optionally **`GOOGLE_API_KEY`**) so agent containers can call the Google Gen AI API.
 
 ## CLI (headless)
 
@@ -104,7 +104,7 @@ Python (workspace root):
 uv run pytest packages/shared/tests orchestrator/tests packages/agent_research/tests -q
 ```
 
-Optional LLM smoke (needs `GROQ_API_KEY`, valid `*_MODEL`, and `RUN_LLM_TESTS=1`):
+Optional LLM smoke (needs `GEMINI_API_KEY` or `GOOGLE_API_KEY`, valid `*_MODEL`, and `RUN_LLM_TESTS=1`):
 
 ```bash
 set RUN_LLM_TESTS=1

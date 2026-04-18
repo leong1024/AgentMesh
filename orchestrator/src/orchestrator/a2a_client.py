@@ -30,10 +30,16 @@ class A2AInvoker(Protocol):
 
 
 class HttpA2AClient:
-    """Uses a2a-sdk ClientFactory (JSON-RPC) with a shared httpx client."""
+    """Uses a2a-sdk ClientFactory (JSON-RPC).
 
-    def __init__(self, http_client: httpx.AsyncClient) -> None:
-        self._http = http_client
+    Each ``invoke`` creates a dedicated ``httpx.AsyncClient``. The A2A SDK's
+    ``client.close()`` calls ``httpx_client.aclose()`` on that transport; sharing
+    one httpx client across invocations (or with FastAPI's per-request client)
+    would close the connection after the first agent call.
+    """
+
+    def __init__(self, timeout: httpx.Timeout | None = None) -> None:
+        self._timeout = timeout
 
     async def invoke(self, base_url: str, payload_json: str) -> str:
         logger.info(
@@ -41,8 +47,13 @@ class HttpA2AClient:
             base_url.rstrip("/"),
             len(payload_json),
         )
-        cfg = ClientConfig(httpx_client=self._http, streaming=False)
-        client = await ClientFactory.connect(base_url.rstrip("/"), cfg)
+        http = httpx.AsyncClient(timeout=self._timeout)
+        try:
+            cfg = ClientConfig(httpx_client=http, streaming=False)
+            client = await ClientFactory.connect(base_url.rstrip("/"), cfg)
+        except BaseException:
+            await http.aclose()
+            raise
         msg = Message(
             message_id=str(uuid.uuid4()),
             role=Role.user,
