@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 RunFn = Callable[[str], Awaitable[str]]
 
 
+def _preview_output(text: str, max_chars: int = 400) -> str:
+    one = text.replace("\n", " ").strip()
+    if len(one) <= max_chars:
+        return one
+    return one[: max_chars - 3] + "..."
+
+
 class CallbackAgentExecutor(AgentExecutor):
     """Executes `run(user_text) -> str` and publishes a single text artifact."""
 
@@ -40,9 +47,10 @@ class CallbackAgentExecutor(AgentExecutor):
         try:
             result_text = await self._run(user_text)
             logger.info(
-                "execute task_id=%s ok result_chars=%d",
+                "execute task_id=%s ok result_chars=%d preview=%r",
                 tid or "?",
                 len(result_text),
+                _preview_output(result_text),
             )
             await updater.add_artifact(
                 parts=[Part(root=TextPart(text=result_text))],

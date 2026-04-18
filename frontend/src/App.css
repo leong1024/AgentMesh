@@ -58,6 +58,16 @@
   cursor: not-allowed;
 }
 
+.run-status {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #2a3140;
+  background: #161b26;
+  color: #9aa3b2;
+  font-size: 0.9rem;
+}
+
 .steps {
   margin: 0 0 1.5rem;
   padding-left: 1.25rem;

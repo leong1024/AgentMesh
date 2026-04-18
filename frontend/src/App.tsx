@@ -14,6 +14,12 @@ function App() {
       </header>
       <main>
         <IdeaForm onSubmit={run} disabled={loading} />
+        {loading && (
+          <p className="run-status" role="status">
+            Running agents (Research → Critic → Synthesizer)… This can take a minute. Steps
+            update as each phase finishes.
+          </p>
+        )}
         {error && <p className="error" role="alert">{error}</p>}
         {steps.length > 0 && (
           <ol className="steps">

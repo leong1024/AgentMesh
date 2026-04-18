@@ -78,7 +78,9 @@ async def run_star_workflow_stream(
         len(idea),
         _preview_idea(idea),
     )
-    yield StreamEvent(step="research", status="started", detail=None)
+    ev0 = StreamEvent(step="research", status="started", detail=None)
+    logger.info("sse yield step=%s status=%s", ev0.step, ev0.status)
+    yield ev0
     r_in = ResearchIn(idea=idea)
     t0 = time.perf_counter()
     r_raw = await client.invoke(settings.research_a2a_url, r_in.model_dump_json())
@@ -88,9 +90,13 @@ async def run_star_workflow_stream(
         time.perf_counter() - t0,
         len(r_raw),
     )
-    yield StreamEvent(step="research", status="completed", detail=None)
+    ev1 = StreamEvent(step="research", status="completed", detail=None)
+    logger.info("sse yield step=%s status=%s", ev1.step, ev1.status)
+    yield ev1
 
-    yield StreamEvent(step="critic", status="started", detail=None)
+    ev2 = StreamEvent(step="critic", status="started", detail=None)
+    logger.info("sse yield step=%s status=%s", ev2.step, ev2.status)
+    yield ev2
     t0 = time.perf_counter()
     c_in = CriticIn(idea=idea, research=research.model_dump())
     c_raw = await client.invoke(settings.critic_a2a_url, c_in.model_dump_json())
@@ -100,9 +106,13 @@ async def run_star_workflow_stream(
         time.perf_counter() - t0,
         len(c_raw),
     )
-    yield StreamEvent(step="critic", status="completed", detail=None)
+    ev3 = StreamEvent(step="critic", status="completed", detail=None)
+    logger.info("sse yield step=%s status=%s", ev3.step, ev3.status)
+    yield ev3
 
-    yield StreamEvent(step="synthesizer", status="started", detail=None)
+    ev4 = StreamEvent(step="synthesizer", status="started", detail=None)
+    logger.info("sse yield step=%s status=%s", ev4.step, ev4.status)
+    yield ev4
     s_in = SynthesizerIn(
         idea=idea,
         research=research.model_dump(),
@@ -116,7 +126,9 @@ async def run_star_workflow_stream(
         time.perf_counter() - t0,
         len(s_raw),
     )
-    yield StreamEvent(step="synthesizer", status="completed", detail=None)
+    ev5 = StreamEvent(step="synthesizer", status="completed", detail=None)
+    logger.info("sse yield step=%s status=%s", ev5.step, ev5.status)
+    yield ev5
 
     report = _final_report(synthesizer)
     logger.info(
@@ -124,4 +136,11 @@ async def run_star_workflow_stream(
         time.perf_counter() - t_run,
         len(report),
     )
-    yield StreamEvent(step="complete", status="done", report=report)
+    ev6 = StreamEvent(step="complete", status="done", report=report)
+    logger.info(
+        "sse yield step=%s status=%s report_chars=%d",
+        ev6.step,
+        ev6.status,
+        len(report),
+    )
+    yield ev6

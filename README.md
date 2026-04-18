@@ -51,13 +51,21 @@ See [reference/PLAN.md](reference/PLAN.md) for architecture and terminology.
    uv run uvicorn orchestrator.main:create_app --factory --host 0.0.0.0 --port 8080
    ```
 
-4. Start the UI (dev server proxies `/api` to the orchestrator):
+4. Start the UI (dev server proxies `/api` to the orchestrator with long timeouts; SSE anti-buffer headers are set on the proxy):
 
    ```bash
    cd frontend && npm run dev
    ```
 
    Open the printed URL (e.g. http://localhost:5173).
+
+   If analyze steps or the report only appear **after** the full run finishes, set in `frontend/.env`:
+
+   ```text
+   VITE_ORCHESTRATOR_URL=http://127.0.0.1:8080
+   ```
+
+   so the browser calls the orchestrator **directly** for the analyze stream (bypasses the Vite dev proxy).
 
 ### Optional: serve the built UI from the API
 

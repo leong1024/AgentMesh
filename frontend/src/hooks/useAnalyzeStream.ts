@@ -23,6 +23,12 @@ function parseSseDataBlock(block: string): Record<string, unknown> | null {
   }
 }
 
+/** Base URL for orchestrator in dev; avoids Vite proxy buffering long SSE streams. */
+function analyzeStreamUrl(): string {
+  const base = import.meta.env.VITE_ORCHESTRATOR_URL?.replace(/\/$/, "") ?? "";
+  return base ? `${base}/api/analyze/stream` : "/api/analyze/stream";
+}
+
 /** Parse SSE `data: {...}` frames from a POST response body (AgentMesh `/api/analyze/stream`). */
 export async function* readSseJsonLines(
   body: ReadableStream<Uint8Array>,
@@ -65,7 +71,7 @@ export function useAnalyzeStream() {
     setReport(null);
     setSteps([]);
     try {
-      const res = await fetch("/api/analyze/stream", {
+      const res = await fetch(analyzeStreamUrl(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idea }),
