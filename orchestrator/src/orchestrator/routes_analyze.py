@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Annotated
 
 import httpx
@@ -17,6 +18,7 @@ from orchestrator.settings import Settings
 from orchestrator.workflow import run_star_workflow, run_star_workflow_stream
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class HealthResponse(BaseModel):
@@ -55,6 +57,7 @@ async def analyze(
     settings: Annotated[Settings, Depends(get_settings)],
     client: Annotated[HttpA2AClient, Depends(get_a2a_client)],
 ) -> AnalyzeResponse:
+    logger.info("POST /api/analyze idea_chars=%d", len(body.idea))
     return await run_star_workflow(body.idea, client, settings)
 
 
@@ -64,11 +67,14 @@ async def analyze_stream(
     settings: Annotated[Settings, Depends(get_settings)],
     client: Annotated[HttpA2AClient, Depends(get_a2a_client)],
 ) -> EventSourceResponse:
+    logger.info("POST /api/analyze/stream idea_chars=%d", len(body.idea))
+
     async def gen():
         try:
             async for ev in run_star_workflow_stream(body.idea, client, settings):
                 yield {"data": json.dumps(ev.model_dump())}
         except Exception as e:
+            logger.exception("analyze stream failed: %s", e)
             err = {"step": "error", "status": "failed", "detail": str(e)}
             yield {"data": json.dumps(err)}
 

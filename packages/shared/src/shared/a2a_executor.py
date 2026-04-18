@@ -28,8 +28,22 @@ class CallbackAgentExecutor(AgentExecutor):
         cid = context.context_id or ""
         updater = TaskUpdater(event_queue, tid, cid)
         await updater.start_work()
+        preview = (user_text or "").replace("\n", " ")
+        if len(preview) > 120:
+            preview = preview[:117] + "..."
+        logger.info(
+            "execute task_id=%s input_chars=%d preview=%r",
+            tid or "?",
+            len(user_text or ""),
+            preview,
+        )
         try:
             result_text = await self._run(user_text)
+            logger.info(
+                "execute task_id=%s ok result_chars=%d",
+                tid or "?",
+                len(result_text),
+            )
             await updater.add_artifact(
                 parts=[Part(root=TextPart(text=result_text))],
                 name="agent_result",

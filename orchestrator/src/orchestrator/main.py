@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from shared.env_load import load_local_env
+from shared.logging_config import set_root_log_level_from_env
 
 from orchestrator.dependencies import get_settings
 from orchestrator.routes_analyze import router as analyze_router
@@ -15,6 +18,11 @@ from orchestrator.routes_analyze import router as analyze_router
 
 def create_app() -> FastAPI:
     load_local_env()
+    set_root_log_level_from_env()
+    logging.getLogger(__name__).info(
+        "orchestrator starting (LOG_LEVEL=%s)",
+        os.environ.get("LOG_LEVEL", "INFO"),
+    )
     settings = get_settings()
     app = FastAPI(title="AgentMesh Orchestrator", version="0.1.0")
     app.add_middleware(

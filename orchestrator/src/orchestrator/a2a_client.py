@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import Protocol
 
@@ -10,6 +11,8 @@ from a2a.client.client import ClientConfig
 from a2a.client.client_factory import ClientFactory
 from a2a.types import Message, Part, Role, Task, TextPart
 from a2a.utils.artifact import get_artifact_text
+
+logger = logging.getLogger(__name__)
 
 
 def _task_to_text(task: Task) -> str:
@@ -33,6 +36,11 @@ class HttpA2AClient:
         self._http = http_client
 
     async def invoke(self, base_url: str, payload_json: str) -> str:
+        logger.info(
+            "A2A invoke -> %s payload_chars=%d",
+            base_url.rstrip("/"),
+            len(payload_json),
+        )
         cfg = ClientConfig(httpx_client=self._http, streaming=False)
         client = await ClientFactory.connect(base_url.rstrip("/"), cfg)
         msg = Message(
@@ -44,9 +52,21 @@ class HttpA2AClient:
             async for event in client.send_message(msg):
                 if isinstance(event, tuple):
                     task, _upd = event
-                    return _task_to_text(task)
+                    text = _task_to_text(task)
+                    logger.info(
+                        "A2A response from %s artifact_chars=%d",
+                        base_url.rstrip("/"),
+                        len(text),
+                    )
+                    return text
                 if isinstance(event, Task):
-                    return _task_to_text(event)
+                    text = _task_to_text(event)
+                    logger.info(
+                        "A2A response from %s artifact_chars=%d",
+                        base_url.rstrip("/"),
+                        len(text),
+                    )
+                    return text
         finally:
             await client.close()
         raise RuntimeError(f"A2A agent at {base_url} returned no task result")

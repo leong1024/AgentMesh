@@ -7,26 +7,49 @@ export type StreamStep = {
   report?: string | null;
 };
 
-async function* readSseJsonLines(
+function parseSseDataBlock(block: string): Record<string, unknown> | null {
+  const trimmed = block.trim();
+  if (!trimmed) return null;
+  const line = trimmed
+    .split("\n")
+    .find((l) => l.startsWith("data: "));
+  if (!line) return null;
+  const json = line.slice("data: ".length).trim();
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** Parse SSE `data: {...}` frames from a POST response body (AgentMesh `/api/analyze/stream`). */
+export async function* readSseJsonLines(
   body: ReadableStream<Uint8Array>,
 ): AsyncGenerator<Record<string, unknown>> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+
   for (;;) {
     const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop() ?? "";
-    for (const block of parts) {
-      const line = block
-        .split("\n")
-        .find((l) => l.startsWith("data: "));
-      if (!line) continue;
-      const json = line.slice("data: ".length).trim();
-      if (json) yield JSON.parse(json) as Record<string, unknown>;
+    if (!done) {
+      buffer += decoder.decode(value as Uint8Array, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop() ?? "";
+      for (const block of parts) {
+        const ev = parseSseDataBlock(block);
+        if (ev) yield ev;
+      }
+      continue;
     }
+
+    buffer += decoder.decode(new Uint8Array(), { stream: false });
+    for (const block of buffer.split("\n\n")) {
+      const ev = parseSseDataBlock(block);
+      if (ev) yield ev;
+    }
+    return;
   }
 }
 
@@ -58,9 +81,21 @@ export function useAnalyzeStream() {
           setError(String(ev.detail ?? "Unknown error"));
           break;
         }
-        setSteps((s) => [...s, { step, status, detail: ev.detail as string | null, report: ev.report as string | null }]);
-        if (ev.report && step === "complete") {
-          setReport(String(ev.report));
+        setSteps((s) => [
+          ...s,
+          {
+            step,
+            status,
+            detail: ev.detail as string | null,
+            report: ev.report as string | null,
+          },
+        ]);
+        if (step === "complete") {
+          setReport(
+            typeof ev.report === "string"
+              ? ev.report
+              : String(ev.report ?? ""),
+          );
         }
       }
     } catch (e) {
