@@ -123,6 +123,7 @@ class StreamEvent(BaseModel):
     status: str
     detail: str | None = None
     report: str | None = None
+    agent_snapshot: AgentSnapshot | None = None
 
 
 class ChatStreamEvent(BaseModel):

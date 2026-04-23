@@ -6,7 +6,13 @@ export type ChatMessage = {
   content: string;
 };
 
-export type AgentStatus = "idle" | "started" | "completed" | "failed";
+export type AgentStatus =
+  | "idle"
+  | "started"
+  | "buffering"
+  | "in_progress"
+  | "completed"
+  | "failed";
 
 export type AgentCard = {
   agent: string;

@@ -10,7 +10,7 @@ type ChatEvent = {
   detail?: string;
   agent_snapshot?: {
     agent?: string;
-    status?: "started" | "completed" | "failed";
+    status?: "idle" | "started" | "buffering" | "in_progress" | "completed" | "failed";
     summary?: string;
     full_text?: string;
     updated_at?: string;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 import uuid
 
@@ -18,6 +19,20 @@ from shared.payloads import (
 
 from orchestrator_agent.deep_agent import run_orchestrator_chat, run_orchestrator_for_idea
 from orchestrator_agent.settings import Settings
+
+
+async def _drain_snapshot_queue(
+    queue: asyncio.Queue[AgentSnapshot],
+    task: asyncio.Task[object],
+) -> AsyncIterator[AgentSnapshot]:
+    while True:
+        if task.done() and queue.empty():
+            break
+        try:
+            snapshot = await asyncio.wait_for(queue.get(), timeout=0.1)
+        except TimeoutError:
+            continue
+        yield snapshot
 
 
 def _final_report(markdown: str, executive_summary: str) -> str:
@@ -49,13 +64,25 @@ async def run_analyze_workflow_stream(
 ) -> AsyncIterator[StreamEvent]:
     yield StreamEvent(step="orchestrator", status="started", detail="Planning dynamic workflow")
     snapshots: list[AgentSnapshot] = []
-    synthesis = await run_orchestrator_for_idea(
-        idea,
-        settings=settings,
-        session_id="analyze-session",
-        thread_id=f"analyze-{uuid.uuid4()}",
-        snapshots=snapshots,
+    snapshot_queue: asyncio.Queue[AgentSnapshot] = asyncio.Queue()
+    synthesis_task = asyncio.create_task(
+        run_orchestrator_for_idea(
+            idea,
+            settings=settings,
+            session_id="analyze-session",
+            thread_id=f"analyze-{uuid.uuid4()}",
+            snapshots=snapshots,
+            snapshot_queue=snapshot_queue,
+        )
     )
+    async for snapshot in _drain_snapshot_queue(snapshot_queue, synthesis_task):
+        yield StreamEvent(
+            step="agent_update",
+            status=snapshot.status,
+            detail=f"{snapshot.agent}: {snapshot.summary}",
+            agent_snapshot=snapshot,
+        )
+    synthesis = await synthesis_task
     report = _final_report(synthesis.report, synthesis.executive_summary)
     yield StreamEvent(step="orchestrator", status="completed", detail="Final report generated")
     yield StreamEvent(step="complete", status="done", report=report)
@@ -102,20 +129,25 @@ async def run_chat_workflow_stream(
         detail="Orchestrator is processing your message.",
     )
     snapshots: list[AgentSnapshot] = []
-    assistant_message = await run_orchestrator_chat(
-        message,
-        settings=settings,
-        session_id=use_session,
-        thread_id=use_thread,
-        snapshots=snapshots,
+    snapshot_queue: asyncio.Queue[AgentSnapshot] = asyncio.Queue()
+    chat_task = asyncio.create_task(
+        run_orchestrator_chat(
+            message,
+            settings=settings,
+            session_id=use_session,
+            thread_id=use_thread,
+            snapshots=snapshots,
+            snapshot_queue=snapshot_queue,
+        )
     )
-    for snapshot in snapshots:
+    async for snapshot in _drain_snapshot_queue(snapshot_queue, chat_task):
         yield ChatStreamEvent(
             event="agent_update",
             session_id=use_session,
             thread_id=use_thread,
             agent_snapshot=snapshot,
         )
+    assistant_message = await chat_task
     yield ChatStreamEvent(
         event="assistant_completed",
         session_id=use_session,

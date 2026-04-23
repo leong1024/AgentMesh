@@ -44,4 +44,22 @@ describe("AgentCards", () => {
     fireEvent.click(screen.getByRole("button", { name: /qa_bot/i }));
     expect(screen.getByRole("heading", { name: "qa_bot" })).toBeInTheDocument();
   });
+
+  it("shows icon-only loading state with accessible label", () => {
+    render(
+      <AgentCards
+        cards={[
+          {
+            agent: "research",
+            status: "started",
+            summary: "Working on citations",
+            fullText: "Research started",
+            updatedAt: "2026-01-01T00:00:00Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByLabelText("Buffering")).toBeInTheDocument();
+  });
 });

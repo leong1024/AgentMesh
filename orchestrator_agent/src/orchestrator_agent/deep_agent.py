@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -19,7 +20,9 @@ from orchestrator_agent.a2a_tools import (
     call_critic_agent,
     call_research_agent,
     reset_snapshot_collector,
+    reset_snapshot_queue,
     set_snapshot_collector,
+    set_snapshot_queue,
 )
 from orchestrator_agent.settings import Settings
 
@@ -64,6 +67,7 @@ async def run_orchestrator(
     thread_id: str | None = None,
     session_id: str | None = None,
     snapshots: list[AgentSnapshot] | None = None,
+    snapshot_queue: asyncio.Queue[AgentSnapshot] | None = None,
     settings: Settings | None = None,
 ) -> str:
     payload = SynthesizerIn.model_validate_json(user_payload_json)
@@ -76,12 +80,14 @@ async def run_orchestrator(
             "session_id": session_id or "default-session",
         }
     }
-    token = set_snapshot_collector(snapshots)
+    collector_token = set_snapshot_collector(snapshots)
+    queue_token = set_snapshot_queue(snapshot_queue)
     try:
         out = await agent.ainvoke({"messages": [HumanMessage(content=prompt)]}, config=config)
         return last_ai_text(out)
     finally:
-        reset_snapshot_collector(token)
+        reset_snapshot_queue(queue_token)
+        reset_snapshot_collector(collector_token)
 
 
 async def run_orchestrator_chat(
@@ -90,6 +96,7 @@ async def run_orchestrator_chat(
     thread_id: str,
     session_id: str,
     snapshots: list[AgentSnapshot] | None = None,
+    snapshot_queue: asyncio.Queue[AgentSnapshot] | None = None,
     settings: Settings | None = None,
 ) -> str:
     use_settings = settings or Settings()
@@ -101,12 +108,14 @@ async def run_orchestrator_chat(
         f"User message:\n{message.strip()}"
     )
     config = {"configurable": {"thread_id": thread_id, "session_id": session_id}}
-    token = set_snapshot_collector(snapshots)
+    collector_token = set_snapshot_collector(snapshots)
+    queue_token = set_snapshot_queue(snapshot_queue)
     try:
         out = await agent.ainvoke({"messages": [HumanMessage(content=prompt)]}, config=config)
         return last_ai_text(out)
     finally:
-        reset_snapshot_collector(token)
+        reset_snapshot_queue(queue_token)
+        reset_snapshot_collector(collector_token)
 
 
 async def run_orchestrator_for_idea(
@@ -116,6 +125,7 @@ async def run_orchestrator_for_idea(
     thread_id: str | None = None,
     session_id: str | None = None,
     snapshots: list[AgentSnapshot] | None = None,
+    snapshot_queue: asyncio.Queue[AgentSnapshot] | None = None,
     settings: Settings | None = None,
 ) -> SynthesizerOut:
     payload = SynthesizerIn(
@@ -128,6 +138,7 @@ async def run_orchestrator_for_idea(
         thread_id=thread_id,
         session_id=session_id,
         snapshots=snapshots,
+        snapshot_queue=snapshot_queue,
         settings=settings,
     )
     return SynthesizerOut.parse_loose(raw)

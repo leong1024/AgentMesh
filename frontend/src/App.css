@@ -197,16 +197,46 @@
   font-weight: 500;
 }
 
-.agent-card__head span {
+.agent-card__status {
   flex: 0 0 auto;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   border-radius: 999px;
-  padding: 0.18rem 0.45rem;
   border: 1px solid rgba(56, 189, 248, 0.42);
   background: rgba(8, 22, 42, 0.7);
   color: #cde7ff;
+}
+
+.agent-card__status--working {
+  color: #a5f3fc;
+  border-color: rgba(34, 211, 238, 0.54);
+  background: rgba(8, 145, 178, 0.23);
+}
+
+.agent-card__status--completed {
+  color: #bbf7d0;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(20, 83, 45, 0.35);
+}
+
+.agent-card__status--failed {
+  color: #fecdd3;
+  border-color: rgba(251, 113, 133, 0.44);
+  background: rgba(127, 29, 29, 0.4);
+}
+
+.agent-card__status-spinner {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: agent-status-spin 0.8s linear infinite;
 }
 
 .agent-card p {
@@ -248,6 +278,24 @@
   border-color: rgba(251, 113, 133, 0.44);
   background: rgba(127, 29, 29, 0.4);
   color: #fecdd3;
+}
+
+@keyframes agent-status-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes agent-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .workspace {
@@ -431,8 +479,20 @@
   padding: 0.55rem 0.75rem;
 }
 
+.agent-card-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 6, 23, 0.78);
+}
+
 .agent-card-dialog {
   width: min(52rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
   border-radius: 14px;
   border: 1px solid rgba(56, 189, 248, 0.35);
   background: linear-gradient(162deg, rgba(3, 10, 22, 0.96), rgba(9, 18, 36, 0.9));
@@ -441,10 +501,6 @@
   box-shadow:
     0 0 0 1px rgba(34, 211, 238, 0.14) inset,
     0 22px 60px rgba(2, 6, 23, 0.62);
-}
-
-.agent-card-dialog::backdrop {
-  background: rgba(2, 6, 23, 0.78);
 }
 
 .agent-card-dialog__header {

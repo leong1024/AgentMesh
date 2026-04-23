@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import pytest
 from orchestrator_agent.settings import Settings
 from orchestrator_agent.workflow import (
@@ -27,13 +28,22 @@ async def test_orchestrator_workflow_uses_orchestrated_report(
 async def test_orchestrator_stream_emits_orchestrator_steps(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async def fake_run(*_args, **_kwargs) -> SynthesizerOut:
+    async def fake_run(*_args, snapshot_queue: asyncio.Queue[AgentSnapshot], **_kwargs) -> SynthesizerOut:
+        snapshot_queue.put_nowait(
+            AgentSnapshot(
+                agent="research",
+                status="started",
+                summary="starting",
+                full_text="Research started",
+            )
+        )
         return SynthesizerOut(executive_summary="", report="# Final")
 
     monkeypatch.setattr("orchestrator_agent.workflow.run_orchestrator_for_idea", fake_run)
     events = [ev async for ev in run_analyze_workflow_stream("idea", Settings())]
     assert events[0].step == "orchestrator"
     assert events[0].status == "started"
+    assert any(ev.step == "agent_update" and ev.agent_snapshot is not None for ev in events)
     assert events[-1].step == "complete"
     assert events[-1].report == "# Final"
 
@@ -57,15 +67,28 @@ async def test_chat_workflow_preserves_ids(monkeypatch: pytest.MonkeyPatch) -> N
 
 @pytest.mark.asyncio
 async def test_chat_stream_emits_agent_updates(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def fake_chat(*_args, snapshots: list[AgentSnapshot], **_kwargs) -> str:
-        snapshots.append(
-            AgentSnapshot(
-                agent="research",
-                status="completed",
-                summary="short",
-                full_text="long result",
-            )
+    async def fake_chat(
+        *_args,
+        snapshots: list[AgentSnapshot],
+        snapshot_queue: asyncio.Queue[AgentSnapshot],
+        **_kwargs,
+    ) -> str:
+        started = AgentSnapshot(
+            agent="research",
+            status="started",
+            summary="starting",
+            full_text="Research started",
         )
+        completed = AgentSnapshot(
+            agent="research",
+            status="completed",
+            summary="short",
+            full_text="long result",
+        )
+        snapshots.extend([started, completed])
+        snapshot_queue.put_nowait(started)
+        await asyncio.sleep(0.01)
+        snapshot_queue.put_nowait(completed)
         return "assistant reply"
 
     monkeypatch.setattr("orchestrator_agent.workflow.run_orchestrator_chat", fake_chat)
@@ -79,5 +102,10 @@ async def test_chat_stream_emits_agent_updates(monkeypatch: pytest.MonkeyPatch) 
         )
     ]
     assert events[0].event == "orchestrator_started"
-    assert any(ev.event == "agent_update" for ev in events)
+    agent_events = [ev for ev in events if ev.event == "agent_update"]
+    assert len(agent_events) == 2
+    assert agent_events[0].agent_snapshot is not None
+    assert agent_events[0].agent_snapshot.status == "started"
+    assert agent_events[1].agent_snapshot is not None
+    assert agent_events[1].agent_snapshot.status == "completed"
     assert events[-1].event == "assistant_completed"
