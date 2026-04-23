@@ -1,6 +1,6 @@
 # AgentMesh
 
-**AgentMesh** is a multi-agent **product and startup idea analyzer**. You submit a short idea in natural language; the **Orchestrator agent** serves as the primary user-facing agent and dynamically decides when to call **Research** and **Critic** over A2A. It then merges evidence into a structured report with an executive summary and Markdown body. The UI streams progress and renders the final report.
+**AgentMesh** is a multi-agent **orchestration chat application**. You chat in natural language with the **Orchestrator agent**; it decides when to call **Research** and **Critic** over A2A, then returns a synthesized markdown response while the UI shows per-agent card updates.
 
 The design goal is a **clear, inspectable mesh**: worker agents speak the **Agent-to-Agent (A2A)** protocol over HTTP as separate processes; the **Orchestrator agent** owns workflow decisions and final narrative generation.
 
@@ -14,9 +14,9 @@ For deeper architecture notes, see [reference/PLAN.md](reference/PLAN.md).
 |-------|------|
 | **Research** | Expands the idea into assumptions, market context, and open questions (general knowledge only; no web browsing in the default setup). |
 | **Critic** | Challenges the idea from an early-stage investor perspective: flaws, risks, and concerns. |
-| **Orchestrator** | Public API + Deep Agent that dynamically calls Research/Critic over A2A based on a local skill and produces the final JSON + Markdown report. |
+| **Orchestrator** | Public chat API + Deep Agent that dynamically calls Research/Critic over A2A based on a local skill and returns markdown responses + agent snapshots. |
 
-The **FastAPI** Orchestrator agent service exposes JSON and **Server-Sent Events (SSE)** endpoints; the **React** SPA submits ideas and displays step progress and the synthesized report.
+The **FastAPI** Orchestrator agent service exposes JSON and **Server-Sent Events (SSE)** chat endpoints; the **React** SPA supports multi-turn chat and displays agent-card updates for orchestrator/research/critic.
 
 ---
 
@@ -29,7 +29,7 @@ The **FastAPI** Orchestrator agent service exposes JSON and **Server-Sent Events
 | **Inter-service protocol** | [A2A](https://github.com/google-a2a/A2A) JSON-RPC over HTTP ([a2a-sdk](https://pypi.org/project/a2a-sdk/)), separate Uvicorn processes per agent |
 | **Orchestrator API** | [FastAPI](https://fastapi.tiangolo.com/), [Uvicorn](https://www.uvicorn.org/), [httpx](https://www.python-httpx.org/) (A2A client), [sse-starlette](https://github.com/sysid/sse-starlette) for streaming |
 | **Data contracts** | [Pydantic](https://docs.pydantic.dev/) v2 payloads in `packages/shared` |
-| **Frontend** | [Vite](https://vitejs.dev/), [React](https://react.dev/) 19, [TypeScript](https://www.typescriptlang.org/), [Vitest](https://vitest.dev/), [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) for report rendering |
+| **Frontend** | [Vite](https://vitejs.dev/), [React](https://react.dev/) 19, [TypeScript](https://www.typescriptlang.org/), [Vitest](https://vitest.dev/), [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) for assistant markdown rendering |
 | **Deployment (optional)** | [Docker Compose](https://docs.docker.com/compose/) — builds the SPA into the API image and runs Research, Critic, and Orchestrator agent |
 
 ---
@@ -85,13 +85,42 @@ The **FastAPI** Orchestrator agent service exposes JSON and **Server-Sent Events
 
    Open the printed URL (for example `http://localhost:5173`). The dev server proxies `/api` to the orchestrator with long timeouts and SSE-friendly headers.
 
-   If streamed steps or the report appear only after the full run completes, set in `frontend/.env`:
+   If streamed chat events appear only after the full run completes, set in `frontend/.env`:
 
    ```text
    VITE_ORCHESTRATOR_URL=http://127.0.0.1:8080
    ```
 
-   so the browser calls the Orchestrator API directly for the analyze stream (avoids some dev-proxy buffering).
+   so the browser calls the Orchestrator API directly for the chat stream (avoids some dev-proxy buffering).
+
+---
+
+## Chat API
+
+Primary endpoints:
+
+- `POST /api/chat` — one-shot chat turn (JSON response).
+- `POST /api/chat/stream` — SSE chat stream for UI updates.
+
+Request body:
+
+```json
+{
+  "message": "User message text",
+  "session_id": "optional-session-id",
+  "thread_id": "optional-thread-id"
+}
+```
+
+Response/stream behavior:
+
+- `session_id` and `thread_id` identify a conversation.
+- Conversation continuity uses LangGraph short-term memory with `MemorySaver` (dev-only, process memory; resets on restart).
+- Stream emits orchestrator start, zero-or-more `agent_update` events (Research/Critic), then `assistant_completed`.
+
+Deprecated:
+
+- `/api/analyze` and `/api/analyze/stream` are deprecated and maintained only for compatibility during migration.
 
 ### Optional: serve the built UI from the API
 
