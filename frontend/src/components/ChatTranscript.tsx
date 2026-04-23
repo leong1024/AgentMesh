@@ -7,9 +7,9 @@ type Props = {
 
 export function ChatTranscript({ messages }: Props) {
   return (
-    <section className="chat-transcript" aria-label="Conversation transcript">
+    <section className="transcript-panel" aria-label="Conversation transcript">
       {messages.length === 0 ? (
-        <p className="chat-transcript__empty">
+        <p className="transcript-panel__empty">
           Start the conversation. The orchestrator will keep context across turns.
         </p>
       ) : (
