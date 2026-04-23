@@ -15,7 +15,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY packages ./packages
-COPY orchestrator ./orchestrator
+COPY orchestrator_agent ./orchestrator_agent
 
 RUN uv sync --frozen --all-packages
 
@@ -27,5 +27,5 @@ ENV STATIC_DIR=/app/frontend/dist
 
 EXPOSE 8080 8001 8002 8003
 
-# Default: orchestrator API (override in compose for agents)
-CMD ["uvicorn", "orchestrator.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080"]
+# Default: orchestrator-agent API (override in compose for agents)
+CMD ["uvicorn", "orchestrator_agent.server:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080"]

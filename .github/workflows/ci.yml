@@ -21,10 +21,10 @@ jobs:
         run: uv sync --all-packages --group dev
 
       - name: Ruff
-        run: uv run ruff check packages orchestrator
+        run: uv run ruff check packages orchestrator_agent
 
       - name: Pytest
-        run: uv run pytest packages/shared/tests orchestrator/tests -q
+        run: uv run pytest packages/shared/tests orchestrator_agent/tests -q
 
   frontend:
     runs-on: ubuntu-latest

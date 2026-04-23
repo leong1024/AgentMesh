@@ -58,7 +58,7 @@ services:
     command:
       [
         "uvicorn",
-        "orchestrator.main:create_app",
+        "orchestrator_agent.server:create_app",
         "--factory",
         "--host",
         "0.0.0.0",
@@ -68,7 +68,7 @@ services:
     environment:
       RESEARCH_A2A_URL: http://research:8001
       CRITIC_A2A_URL: http://critic:8002
-      ORCHESTRATOR_MODEL: ${ORCHESTRATOR_MODEL:-google_genai:gemma-4-31b-it}
+      ORCHESTRATOR_AGENT_MODEL: ${ORCHESTRATOR_AGENT_MODEL:-google_genai:gemma-4-31b-it}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       STATIC_DIR: /app/frontend/dist

@@ -19,8 +19,7 @@ members = [
     "packages/shared",
     "packages/agent_research",
     "packages/agent_critic",
-    "packages/agent_synthesizer",
-    "orchestrator",
+    "orchestrator_agent",
 ]
 
 [tool.ruff]
@@ -31,7 +30,7 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-"orchestrator/src/orchestrator/cli.py" = ["B008"]
+"orchestrator_agent/src/orchestrator_agent/cli.py" = ["B008"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

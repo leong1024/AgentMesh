@@ -1,8 +1,12 @@
 import pytest
 from pydantic import ValidationError
 from shared.payloads import (
+    AgentSnapshot,
     MAX_IDEA_CHARS,
     AnalyzeRequest,
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ChatStreamEvent,
     CriticOut,
     ResearchOut,
     SynthesizerOut,
@@ -23,6 +27,34 @@ def test_analyze_request_rejects_empty() -> None:
 def test_analyze_request_rejects_too_long() -> None:
     with pytest.raises(ValidationError):
         AnalyzeRequest(idea="x" * (MAX_IDEA_CHARS + 1))
+
+
+def test_chat_message_request_rejects_empty() -> None:
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(message="")
+
+
+def test_chat_response_and_stream_event_shape() -> None:
+    snap = AgentSnapshot(
+        agent="research",
+        status="completed",
+        summary="Market assumptions are risky.",
+        full_text="Longer research output",
+    )
+    resp = ChatMessageResponse(
+        session_id="s1",
+        thread_id="t1",
+        assistant_message="Hello",
+        agent_snapshots=[snap],
+    )
+    event = ChatStreamEvent(
+        event="agent_update",
+        session_id="s1",
+        thread_id="t1",
+        agent_snapshot=snap,
+    )
+    assert resp.agent_snapshots[0].agent == "research"
+    assert event.event == "agent_update"
 
 
 def test_research_parse_loose_json() -> None:

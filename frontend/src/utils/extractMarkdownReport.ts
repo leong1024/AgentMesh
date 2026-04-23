@@ -1,5 +1,5 @@
 /**
- * When the backend falls back to raw JSON (e.g. loose synthesizer output), the stream
+ * When the backend falls back to raw JSON (e.g. loose orchestrator output), the stream
  * `report` may be a full JSON object string. Prefer the nested `report` markdown field.
  */
 export function extractMarkdownReport(raw: string | null | undefined): string {

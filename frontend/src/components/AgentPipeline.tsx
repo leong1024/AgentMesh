@@ -1,22 +1,21 @@
 import type { StreamStep } from "../hooks/useAnalyzeStream";
 
-const AGENTS = ["research", "critic", "report"] as const;
+const AGENTS = ["orchestrator"] as const;
 
 type AgentId = (typeof AGENTS)[number];
 
 const LABELS: Record<AgentId, { title: string; subtitle: string }> = {
-  research: { title: "Research", subtitle: "A2A · context & assumptions" },
-  critic: { title: "Critic", subtitle: "A2A · risks & pushback" },
-  report: { title: "Orchestrator", subtitle: "Deep agent · final report" },
+  orchestrator: {
+    title: "Orchestrator",
+    subtitle: "Deep agent · dynamic A2A orchestration",
+  },
 };
 
 export type NodeState = "pending" | "active" | "done";
 
 function deriveNodeStates(steps: StreamStep[]): Record<AgentId, NodeState> {
   const states: Record<AgentId, NodeState> = {
-    research: "pending",
-    critic: "pending",
-    report: "pending",
+    orchestrator: "pending",
   };
   for (const s of steps) {
     if (!AGENTS.includes(s.step as AgentId)) continue;
@@ -85,7 +84,7 @@ export function AgentPipeline({ steps, loading }: Props) {
       </div>
       <p className="agent-pipeline__hint">
         {loading
-          ? "Research and Critic run over A2A; the orchestrator deep agent merges them into the report."
+          ? "Orchestrator is planning and calling Research/Critic over A2A as needed."
           : steps.length > 0
             ? "Run finished. Scroll for the synthesized markdown report."
             : "Submit an idea to activate the mesh."}

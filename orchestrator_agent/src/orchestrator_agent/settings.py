@@ -1,4 +1,4 @@
-"""Environment-backed settings."""
+"""Environment-backed settings for Orchestrator agent runtime."""
 
 from __future__ import annotations
 
@@ -14,29 +14,15 @@ class Settings(BaseSettings):
         populate_by_name=True,
     )
 
+    orchestrator_agent_model: str = Field(default="google_genai:gemma-4-31b-it")
     research_a2a_url: str = Field(default="http://127.0.0.1:8001")
     critic_a2a_url: str = Field(default="http://127.0.0.1:8002")
-
-    orchestrator_model: str = Field(
-        default="google_genai:gemma-4-31b-it",
-        description="Model id for the orchestrator deep agent that writes the final report.",
-    )
-
-    cors_origins: str = Field(
-        default="http://localhost:5173,http://127.0.0.1:5173",
-        description="Comma-separated origins for CORS",
-    )
-
+    http_timeout_seconds: float = 600.0
+    cors_origins: str = Field(default="http://localhost:5173,http://127.0.0.1:5173")
+    static_dir: str | None = Field(default=None, alias="STATIC_DIR")
     api_host: str = "0.0.0.0"
     api_port: int = 8080
-
-    http_timeout_seconds: float = 600.0
-
-    static_dir: str | None = Field(
-        default=None,
-        alias="STATIC_DIR",
-        description="If set, serve SPA static files from this directory.",
-    )
+    memory_backend: str = "memorysaver"
 
     @field_validator("static_dir", mode="before")
     @classmethod

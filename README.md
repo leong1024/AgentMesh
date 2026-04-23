@@ -1,8 +1,8 @@
 # AgentMesh
 
-**AgentMesh** is a multi-agent **product and startup idea analyzer**. You submit a short idea in natural language; the system runs a **research** pass (assumptions and market framing), a **skeptical critique** pass (risks and investor concerns), then **merges** both into a single structured report with an executive summary and Markdown body. The UI streams progress and renders the final report.
+**AgentMesh** is a multi-agent **product and startup idea analyzer**. You submit a short idea in natural language; the **Orchestrator agent** serves as the primary user-facing agent and dynamically decides when to call **Research** and **Critic** over A2A. It then merges evidence into a structured report with an executive summary and Markdown body. The UI streams progress and renders the final report.
 
-The design goal is a **clear, inspectable pipeline**: worker agents speak the **Agent-to-Agent (A2A)** protocol over HTTP as separate processes; the **orchestrator** coordinates them and produces the final narrative in one place.
+The design goal is a **clear, inspectable mesh**: worker agents speak the **Agent-to-Agent (A2A)** protocol over HTTP as separate processes; the **Orchestrator agent** owns workflow decisions and final narrative generation.
 
 For deeper architecture notes, see [reference/PLAN.md](reference/PLAN.md).
 
@@ -14,9 +14,9 @@ For deeper architecture notes, see [reference/PLAN.md](reference/PLAN.md).
 |-------|------|
 | **Research** | Expands the idea into assumptions, market context, and open questions (general knowledge only; no web browsing in the default setup). |
 | **Critic** | Challenges the idea from an early-stage investor perspective: flaws, risks, and concerns. |
-| **Orchestrator** | Calls Research and Critic in sequence over A2A, then runs an **in-process Deep Agent** to synthesize a coherent JSON + Markdown report from their outputs. |
+| **Orchestrator** | Public API + Deep Agent that dynamically calls Research/Critic over A2A based on a local skill and produces the final JSON + Markdown report. |
 
-The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints; the **React** SPA submits ideas and displays step progress and the synthesized report.
+The **FastAPI** Orchestrator agent service exposes JSON and **Server-Sent Events (SSE)** endpoints; the **React** SPA submits ideas and displays step progress and the synthesized report.
 
 ---
 
@@ -30,7 +30,7 @@ The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints;
 | **Orchestrator API** | [FastAPI](https://fastapi.tiangolo.com/), [Uvicorn](https://www.uvicorn.org/), [httpx](https://www.python-httpx.org/) (A2A client), [sse-starlette](https://github.com/sysid/sse-starlette) for streaming |
 | **Data contracts** | [Pydantic](https://docs.pydantic.dev/) v2 payloads in `packages/shared` |
 | **Frontend** | [Vite](https://vitejs.dev/), [React](https://react.dev/) 19, [TypeScript](https://www.typescriptlang.org/), [Vitest](https://vitest.dev/), [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) for report rendering |
-| **Deployment (optional)** | [Docker Compose](https://docs.docker.com/compose/) — builds the SPA into the API image and runs Research, Critic, and the orchestrator |
+| **Deployment (optional)** | [Docker Compose](https://docs.docker.com/compose/) — builds the SPA into the API image and runs Research, Critic, and Orchestrator agent |
 
 ---
 
@@ -51,7 +51,7 @@ The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints;
    uv sync --all-packages --group dev
    ```
 
-   Use `--all-packages` so every workspace member (agents, orchestrator, shared) is installed.
+   Use `--all-packages` so every workspace member (agents, orchestrator-agent, shared) is installed.
 
    ```bash
    cd frontend && npm install && cd ..
@@ -61,7 +61,7 @@ The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints;
 
    Copy `.env.example` to `.env` (for example `copy .env.example .env` on Windows, or `cp .env.example .env` on Linux/macOS).
 
-   Edit `.env`: set **`GEMINI_API_KEY`** (or **`GOOGLE_API_KEY`**), and adjust **`RESEARCH_MODEL`**, **`CRITIC_MODEL`**, and **`ORCHESTRATOR_MODEL`** if needed (each id must start with `google_genai:`). Processes load `.env` via `python-dotenv`.
+   Edit `.env`: set **`GEMINI_API_KEY`** (or **`GOOGLE_API_KEY`**), and adjust **`RESEARCH_MODEL`**, **`CRITIC_MODEL`**, and **`ORCHESTRATOR_AGENT_MODEL`** if needed (each id must start with `google_genai:`). Processes load `.env` via `python-dotenv`.
 
 3. **Run services** (three terminals from the repo root)
 
@@ -74,7 +74,7 @@ The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints;
    ```
 
    ```bash
-   uv run uvicorn orchestrator.main:create_app --factory --host 0.0.0.0 --port 8080
+   uv run python -m uvicorn orchestrator_agent.server:create_app --factory --host 0.0.0.0 --port 8080
    ```
 
 4. **Start the UI**
@@ -91,14 +91,14 @@ The **FastAPI** backend exposes JSON and **Server-Sent Events (SSE)** endpoints;
    VITE_ORCHESTRATOR_URL=http://127.0.0.1:8080
    ```
 
-   so the browser calls the orchestrator directly for the analyze stream (avoids some dev-proxy buffering).
+   so the browser calls the Orchestrator API directly for the analyze stream (avoids some dev-proxy buffering).
 
 ### Optional: serve the built UI from the API
 
 ```bash
 cd frontend && npm run build && cd ..
 set STATIC_DIR=frontend\dist
-uv run uvicorn orchestrator.main:create_app --factory --host 0.0.0.0 --port 8080
+uv run python -m uvicorn orchestrator_agent.server:create_app --factory --host 0.0.0.0 --port 8080
 ```
 
 Then open `http://127.0.0.1:8080`.
@@ -107,7 +107,7 @@ Then open `http://127.0.0.1:8080`.
 
 ## Docker Compose
 
-Builds the frontend into the image and runs two A2A workers (Research, Critic) plus the API.
+Builds the frontend into the image and runs two A2A workers (Research, Critic) plus the Orchestrator API.
 
 ```bash
 docker compose up --build
@@ -141,7 +141,7 @@ uv run agentmesh analyze --idea "..." --json
 **Python** (workspace root):
 
 ```bash
-uv run pytest packages/shared/tests orchestrator/tests packages/agent_research/tests -q
+uv run pytest packages/shared/tests orchestrator_agent/tests packages/agent_research/tests -q
 ```
 
 Optional LLM smoke tests (requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`, valid `*_MODEL`, and `RUN_LLM_TESTS=1`):
@@ -167,8 +167,8 @@ cd frontend && npm test
 ## Lint (Python)
 
 ```bash
-uv run ruff check packages orchestrator
-uv run ruff format packages orchestrator
+uv run ruff check packages orchestrator_agent
+uv run ruff format packages orchestrator_agent
 ```
 
 ---
@@ -179,7 +179,6 @@ uv run ruff format packages orchestrator
 |------|-----------|
 | `packages/shared` | Shared Pydantic payloads, prompts, A2A app helpers |
 | `packages/agent_research`, `packages/agent_critic` | Deep Agent + A2A server per role |
-| `packages/agent_synthesizer` | Optional standalone package (not used by the default orchestrator path) |
-| `orchestrator` | FastAPI app, A2A HTTP client, orchestrator Deep Agent synthesis, SSE streaming |
+| `orchestrator_agent` | Top-level public FastAPI + A2A service, skill-driven Deep Agent orchestration and synthesis |
 | `frontend` | Vite + React SPA |
 | `reference/` | Architecture notes and planning documents |

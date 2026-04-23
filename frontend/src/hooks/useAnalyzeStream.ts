@@ -26,7 +26,7 @@ function parseSseDataBlock(block: string): Record<string, unknown> | null {
   }
 }
 
-/** Base URL for orchestrator in dev; avoids Vite proxy buffering long SSE streams. */
+/** Base URL for orchestrator API in dev; avoids Vite proxy buffering long SSE streams. */
 function analyzeStreamUrl(): string {
   const base = import.meta.env.VITE_ORCHESTRATOR_URL?.replace(/\/$/, "") ?? "";
   return base ? `${base}/api/analyze/stream` : "/api/analyze/stream";

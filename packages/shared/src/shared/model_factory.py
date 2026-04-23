@@ -34,7 +34,7 @@ def gemini_chat_model(model_spec: str) -> BaseChatModel:
     if not s.startswith("google_genai:"):
         raise ValueError(
             "Only Google Gen AI models are supported. Set RESEARCH_MODEL / "
-            "CRITIC_MODEL / SYNTHESIZER_MODEL to a unified id starting with "
+            "CRITIC_MODEL / ORCHESTRATOR_AGENT_MODEL to a unified id starting with "
             f"'google_genai:', for example {DEFAULT_GEMINI_MODEL_SPEC!r}. Got: {s!r}"
         )
     return init_chat_model(s)

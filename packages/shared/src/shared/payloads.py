@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
@@ -13,6 +14,14 @@ class AnalyzeRequest(BaseModel):
     """POST /api/analyze body."""
 
     idea: str = Field(..., min_length=1, max_length=MAX_IDEA_CHARS)
+
+
+class ChatMessageRequest(BaseModel):
+    """POST /api/chat body."""
+
+    message: str = Field(..., min_length=1, max_length=MAX_IDEA_CHARS)
+    session_id: str | None = None
+    thread_id: str | None = None
 
 
 class ResearchIn(BaseModel):
@@ -90,6 +99,23 @@ class AnalyzeResponse(BaseModel):
     steps: StepOutputs
 
 
+class AgentSnapshot(BaseModel):
+    agent: str
+    status: str
+    summary: str
+    full_text: str
+    updated_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
+    )
+
+
+class ChatMessageResponse(BaseModel):
+    session_id: str
+    thread_id: str
+    assistant_message: str
+    agent_snapshots: list[AgentSnapshot] = Field(default_factory=list)
+
+
 class StreamEvent(BaseModel):
     """SSE payload for /api/analyze/stream."""
 
@@ -97,6 +123,17 @@ class StreamEvent(BaseModel):
     status: str
     detail: str | None = None
     report: str | None = None
+
+
+class ChatStreamEvent(BaseModel):
+    """SSE payload for /api/chat/stream."""
+
+    event: str
+    session_id: str
+    thread_id: str
+    message: str | None = None
+    agent_snapshot: AgentSnapshot | None = None
+    detail: str | None = None
 
 
 class HealthAgentsResponse(BaseModel):

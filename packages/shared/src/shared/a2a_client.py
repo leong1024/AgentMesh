@@ -30,13 +30,7 @@ class A2AInvoker(Protocol):
 
 
 class HttpA2AClient:
-    """Uses a2a-sdk ClientFactory (JSON-RPC).
-
-    Each ``invoke`` creates a dedicated ``httpx.AsyncClient``. The A2A SDK's
-    ``client.close()`` calls ``httpx_client.aclose()`` on that transport; sharing
-    one httpx client across invocations (or with FastAPI's per-request client)
-    would close the connection after the first agent call.
-    """
+    """Uses a2a-sdk ClientFactory (JSON-RPC)."""
 
     def __init__(self, timeout: httpx.Timeout | None = None) -> None:
         self._timeout = timeout

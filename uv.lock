@@ -10,9 +10,8 @@ resolution-markers = [
 members = [
     "agent-critic",
     "agent-research",
-    "agent-synthesizer",
     "agentmesh-workspace",
-    "orchestrator",
+    "orchestrator-agent",
     "shared",
 ]
 
@@ -64,27 +63,6 @@ requires-dist = [
 name = "agent-research"
 version = "0.1.0"
 source = { editable = "packages/agent_research" }
-dependencies = [
-    { name = "a2a-sdk", extra = ["http-server"] },
-    { name = "deepagents" },
-    { name = "langchain-core" },
-    { name = "shared" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "a2a-sdk", extras = ["http-server"], specifier = "==0.3.26" },
-    { name = "deepagents", specifier = ">=0.5" },
-    { name = "langchain-core", specifier = ">=0.3" },
-    { name = "shared", editable = "packages/shared" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
-]
-
-[[package]]
-name = "agent-synthesizer"
-version = "0.1.0"
-source = { editable = "packages/agent_synthesizer" }
 dependencies = [
     { name = "a2a-sdk", extra = ["http-server"] },
     { name = "deepagents" },
@@ -930,11 +908,11 @@ wheels = [
 ]
 
 [[package]]
-name = "orchestrator"
+name = "orchestrator-agent"
 version = "0.1.0"
-source = { editable = "orchestrator" }
+source = { editable = "orchestrator_agent" }
 dependencies = [
-    { name = "a2a-sdk" },
+    { name = "a2a-sdk", extra = ["http-server"] },
     { name = "deepagents" },
     { name = "fastapi" },
     { name = "httpx" },
@@ -948,7 +926,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "a2a-sdk", specifier = "==0.3.26" },
+    { name = "a2a-sdk", extras = ["http-server"], specifier = "==0.3.26" },
     { name = "deepagents", specifier = ">=0.5" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.28" },
@@ -1455,6 +1433,7 @@ version = "0.1.0"
 source = { editable = "packages/shared" }
 dependencies = [
     { name = "a2a-sdk", extra = ["http-server"] },
+    { name = "httpx" },
     { name = "langchain" },
     { name = "langchain-google-genai" },
     { name = "pydantic" },
@@ -1464,6 +1443,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "a2a-sdk", extras = ["http-server"], specifier = "==0.3.26" },
+    { name = "httpx", specifier = ">=0.28" },
     { name = "langchain", specifier = ">=0.3" },
     { name = "langchain-google-genai", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.11" },
