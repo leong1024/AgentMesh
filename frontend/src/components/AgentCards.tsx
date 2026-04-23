@@ -48,7 +48,7 @@ export function AgentCards({ cards }: Props) {
     <>
       <section className="agent-panel" aria-label="Agent updates">
         <header className="agent-panel__header">
-          <h2>Agent Cards</h2>
+          <h2>🤖🧠</h2>
           <p>Realtime status from orchestrator snapshots.</p>
         </header>
         <div className="agent-cards">
