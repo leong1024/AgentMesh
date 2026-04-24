@@ -6,6 +6,10 @@ The design goal is a **clear, inspectable mesh**: worker agents speak the **Agen
 
 For deeper architecture notes, see [reference/PLAN.md](reference/PLAN.md).
 
+## UI preview
+
+![AgentMesh UI screenshot](docs/images/AgentMesh.png)
+
 ---
 
 ## What it does
