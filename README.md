@@ -4,7 +4,6 @@
 
 The design goal is a **clear, inspectable mesh**: worker agents speak the **Agent-to-Agent (A2A)** protocol over HTTP as separate processes; the **Orchestrator agent** owns workflow decisions and final narrative generation.
 
-For deeper architecture notes, see [reference/PLAN.md](reference/PLAN.md).
 
 ## UI preview
 
@@ -214,4 +213,4 @@ uv run ruff format packages orchestrator_agent
 | `packages/agent_research`, `packages/agent_critic` | Deep Agent + A2A server per role |
 | `orchestrator_agent` | Top-level public FastAPI + A2A service, skill-driven Deep Agent orchestration and synthesis |
 | `frontend` | Vite + React SPA |
-| `reference/` | Architecture notes and planning documents |
+
